@@ -13,29 +13,20 @@
 
 from __future__ import unicode_literals
 
+import pkg_resources
 import importlib
 
 from six.moves import urllib
 
-BACKENDS = {
-    'local': 'testinfra.backend.local.LocalBackend',
-    'ssh': 'testinfra.backend.ssh.SshBackend',
-    'safe-ssh': 'testinfra.backend.ssh.SafeSshBackend',
-    'paramiko': 'testinfra.backend.paramiko.ParamikoBackend',
-    'salt': 'testinfra.backend.salt.SaltBackend',
-    'docker': 'testinfra.backend.docker.DockerBackend',
-    'ansible': 'testinfra.backend.ansible.AnsibleBackend',
-    'kubectl': 'testinfra.backend.kubectl.KubectlBackend',
-}
+BACKENDS = {ep.name: ep for ep in pkg_resources.iter_entry_points('testinfra.backend')}
 
 
 def get_backend_class(connection):
     try:
-        classpath = BACKENDS[connection]
-    except KeyError:
+        entry_point = BACKENDS[connection]
+        return entry_point.load()
+    except KeyError, ImportError:
         raise RuntimeError("Unknown connection type '%s'" % (connection,))
-    module, name = classpath.rsplit('.', 1)
-    return getattr(importlib.import_module(module), name)
 
 
 def parse_hostspec(hostspec):
