@@ -20,6 +20,7 @@ import sys
 import pytest
 import testinfra
 import testinfra.modules
+import testinfra.backend
 
 
 def _generate_fixtures():
@@ -61,9 +62,8 @@ def pytest_addoption(parser):
         "--connection",
         action="store",
         dest="connection",
-        help=(
-            "Remote connection backend (paramiko, ssh, safe-ssh, "
-            "salt, docker, ansible)"
+        help="Remote connection backend ({0})".format(
+            ', '.join(testinfra.backend.BACKENDS)
         )
     )
     group.addoption(
